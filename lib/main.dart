@@ -1,16 +1,15 @@
 import 'package:flame/game.dart';
+import 'package:flame/flame.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(
-  new MyGame().start()
+  new MyGame().widget
 );
 
 class MyGame extends Game{
-  Widget start() {re}
-
   @override
   void render(Canvas canvas) {
-    var rect= new Rect.fromLTWH(10, 10, 10, 10);
+    var rect= new Rect.fromLTWH(100, 100, 100, 10);
     var paint = new Paint();
     paint.color = new Color(0xFFFF0000);
     canvas.drawRect(rect, paint);
