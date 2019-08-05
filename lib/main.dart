@@ -4,7 +4,10 @@ import 'dart:ui';
 import 'package:flame/components/component.dart';
 import 'package:flame/game.dart';
 import 'package:flame/flame.dart';
+import 'package:flame/palette.dart';
+import 'package:flame/position.dart';
 import 'package:flame/sprite.dart';
+import 'package:flame/text_config.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -18,6 +21,9 @@ void main() async{
 }
 
 class MyGame extends Game{
+  int points=0;
+  int enemySpeed=100;
+  double increaseCounter=0;
   List<Enemy> enemies=[];
   Size screenSize;
   Rect emmemy;
@@ -25,15 +31,23 @@ class MyGame extends Game{
 
   MyGame(Size dim){
     screenSize=dim;
-    enemies.add(new Enemy(screenSize));
+    enemies.add(new Enemy(screenSize,enemySpeed));
     emmemy=Rect.fromLTWH(100, 100, 30, 30);
   }
   void render(Canvas canvas) {
+    canvas.save();
     var rect= new Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
+    var backpoint= new Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
+    TextConfig textConfig=TextConfig(fontSize: 100,color: BasicPalette.white.color,fontFamily: 'Arial',textAlign: TextAlign.center);
     var paint = new Paint();
     paint.color = new Color(0xF00F0F30);
     canvas.drawRect(rect, paint);
-    enemies.forEach((Enemy)=>Enemy.render(canvas));
+    textConfig.render(canvas, String.fromCharCode(points),Position.fromInts(10, 10)) ;
+    enemies.forEach((Enemy){
+      Enemy.render(canvas);
+      canvas.restore();
+      canvas.save();
+    });
     //enemies.first.render(canvas);
     //sprite.renderRect(canvas, emmemy);
   }
@@ -41,6 +55,12 @@ class MyGame extends Game{
   @override
   void update(double t) {
     enemies.forEach((Enemy)=>Enemy.update(t));
+    increaseCounter+=t;
+    if(increaseCounter>=1) {
+      enemySpeed+=5;
+      increaseCounter=0;
+      createEnemy(enemySpeed);
+    }
     //if(enemy.y>screenSize.height)enemy.y=-100;
     //window.onPointerDataPacket = (packet){
       //var pointer = packet.data.first;
@@ -52,34 +72,34 @@ class MyGame extends Game{
     super.resize(size);
   }
 
-  void createEnemy(){
-    enemies.add(new Enemy(screenSize));
+  void createEnemy(int enemySpeed){
+    enemies.add(new Enemy(screenSize,enemySpeed));
   }
 
   void input(double x, double y) {
-    enemies.forEach((Enemy){
-      if(Enemy.collisionCheck(x, y))
-        createEnemy();
-        print(enemies.length);
+    enemies.removeWhere((Enemy) {
+      return (Enemy.collisionCheck(x, y));
     });
   }
 
 }
 class Enemy extends SpriteComponent {
   Size dim;
-  Enemy(Size sc):super.square(100,'enemy.png'){
+  int eSpeed;
+  Enemy(Size sc, int enemySpeed):super.square(100,'enemy.png'){
     Random random=Random();
     dim=sc;
-    this.x=random.nextDouble()*200;
+    eSpeed=enemySpeed;
+    this.x=random.nextDouble()*300;
     this.angle=0.0;
-    this.y=dim.height-100;
+    this.y=-100;
   }
   @override
   void update(double t) {
     super.update(t);
-    y+=t*100;
+    y+=t*eSpeed;
     if(y>dim.height){
-      y=-40;
+      y=-100;
     }
   }
   bool collisionCheck(double x,double y){
