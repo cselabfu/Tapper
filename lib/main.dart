@@ -11,7 +11,7 @@ import 'package:flame/text_config.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-
+int points=0;
 void main() async{
   Flame.images.loadAll(<String>['enemy.png','background.png']);
   var dim=await Flame.util.initialDimensions();
@@ -21,7 +21,6 @@ void main() async{
 }
 
 class MyGame extends Game{
-  int points=0;
   int enemySpeed=100;
   double increaseCounter=0;
   List<Enemy> enemies=[];
@@ -38,11 +37,11 @@ class MyGame extends Game{
     canvas.save();
     var rect= new Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
     var backpoint= new Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
-    TextConfig textConfig=TextConfig(fontSize: 100,color: BasicPalette.white.color,fontFamily: 'Arial',textAlign: TextAlign.center);
+    const TextConfig config = TextConfig(fontSize: 48.0, fontFamily: 'Awesome Font');
     var paint = new Paint();
     paint.color = new Color(0xF00F0F30);
     canvas.drawRect(rect, paint);
-    textConfig.render(canvas, String.fromCharCode(points),Position.fromInts(10, 10)) ;
+    config.render(canvas,"Points: ${points}", Position(0, 0));
     enemies.forEach((Enemy){
       Enemy.render(canvas);
       canvas.restore();
@@ -56,8 +55,8 @@ class MyGame extends Game{
   void update(double t) {
     enemies.forEach((Enemy)=>Enemy.update(t));
     increaseCounter+=t;
-    if(increaseCounter>=1) {
-      enemySpeed+=5;
+    if(increaseCounter>=0.4) {
+      enemySpeed+=45;
       increaseCounter=0;
       createEnemy(enemySpeed);
     }
@@ -75,11 +74,13 @@ class MyGame extends Game{
   void createEnemy(int enemySpeed){
     enemies.add(new Enemy(screenSize,enemySpeed));
   }
-
   void input(double x, double y) {
     enemies.removeWhere((Enemy) {
-      return (Enemy.collisionCheck(x, y));
+      if(Enemy.collisionCheck(x, y))
+      points++;
+      return Enemy.collisionCheck(x, y);
     });
+
   }
 
 }
@@ -99,7 +100,7 @@ class Enemy extends SpriteComponent {
     super.update(t);
     y+=t*eSpeed;
     if(y>dim.height){
-      y=-100;
+      this.destroy();
     }
   }
   bool collisionCheck(double x,double y){
